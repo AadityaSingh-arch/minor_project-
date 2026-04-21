@@ -1,0 +1,129 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Document</title>
+  <link rel="stylesheet" href="ai_career_platform_v2.css">
+  <script src="ai_career_platform_v2.js" defer></script>
+</head>
+<body>
+  <h2 class="sr-only">CareerPath AI — Resume and job listing analyzer with real-time skill gap identification</h2>
+
+<div class="app">
+
+<div class="topbar">
+  <div class="brand">
+    <div class="brand-dot"><svg viewBox="0 0 24 24"><path d="M3 9l9-7 9 7v11a2 2 0 01-2 2H5a2 2 0 01-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg></div>
+    <span class="brand-name">CareerPath AI</span>
+  </div>
+  <div class="nav-tabs">
+    <button class="ntab active" onclick="goPage('analyze')">Analyze</button>
+    <button class="ntab" onclick="goPage('gaps')">Skill gaps</button>
+    <button class="ntab" onclick="goPage('courses')">Courses</button>
+    <button class="ntab" onclick="goPage('jobs')">Jobs for me now</button>
+  </div>
+  <button class="resume-pill" id="resume-pill-btn" onclick="goPage('resume-panel')">
+    <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z"/><polyline points="14 2 14 8 20 8"/></svg>
+    <span id="resume-pill-label">Upload resume</span>
+  </button>
+</div>
+
+<div class="main">
+
+<!-- RESUME PANEL -->
+<div class="page" id="page-resume-panel">
+  <div class="card">
+    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:1rem">
+      <div style="font-size:15px;font-weight:500">Your resume</div>
+      <span class="badge b-blue">Always available</span>
+    </div>
+    <div class="tab-row">
+      <button class="tab active" onclick="switchResTab('upload',this)">Upload PDF / DOCX</button>
+      <button class="tab" onclick="switchResTab('paste',this)">Paste text</button>
+    </div>
+    <div id="res-upload-tab">
+      <div class="upload-zone" id="resume-drop" onclick="document.getElementById('resume-file').click()" ondragover="ev.preventDefault();this.classList.add('drag')" ondragleave="this.classList.remove('drag')" ondrop="handleResumeDrop(event)">
+        <input type="file" id="resume-file" accept=".pdf,.doc,.docx,.txt" style="display:none" onchange="handleResumeFile(this)">
+        <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="var(--color-text-tertiary)" stroke-width="1.5" style="margin-bottom:8px"><path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/><polyline points="10 9 9 9 8 9"/></svg>
+        <div id="resume-drop-label" style="font-size:13px;color:var(--color-text-secondary)">Drop your resume here, or click to browse</div>
+        <div style="font-size:11px;color:var(--color-text-tertiary);margin-top:4px">PDF, DOCX, or TXT</div>
+      </div>
+    </div>
+    <div id="res-paste-tab" class="hidden">
+      <textarea id="resume-text-input" placeholder="Paste your resume content here..." style="width:100%;min-height:220px;font-size:12px;line-height:1.7;resize:vertical"></textarea>
+      <button class="btn prim" style="margin-top:8px" onclick="saveResumeText()">Save resume text</button>
+    </div>
+    <div id="resume-preview" class="hidden" style="margin-top:1rem">
+      <div class="divider"></div>
+      <div class="label">Saved resume</div>
+      <div style="background:var(--color-background-secondary);border-radius:var(--border-radius-md);padding:10px 12px;font-size:12px;line-height:1.7;color:var(--color-text-secondary);max-height:200px;overflow-y:auto;white-space:pre-wrap" id="resume-preview-text"></div>
+      <div style="display:flex;gap:8px;margin-top:10px">
+        <button class="btn sm" onclick="clearResume()">Clear</button>
+        <button class="btn sm prim" onclick="goPage('analyze')">Go to analyzer →</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ANALYZE PAGE -->
+<div class="page active" id="page-analyze">
+
+  <div class="row" style="margin-bottom:0">
+    <div class="card" style="margin-bottom:0">
+      <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:10px">
+        <div style="font-size:13px;font-weight:500">Your resume</div>
+        <span id="resume-status-badge" class="badge b-red">Not uploaded</span>
+      </div>
+      <div id="resume-inline-zone" class="upload-zone" style="padding:1rem" onclick="goPage('resume-panel')">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="var(--color-text-tertiary)" stroke-width="1.5"><path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z"/><polyline points="14 2 14 8 20 8"/></svg>
+        <div id="resume-inline-label" style="font-size:12px;color:var(--color-text-secondary);margin-top:4px">Click to upload resume</div>
+      </div>
+    </div>
+
+    <div class="card" style="margin-bottom:0">
+      <div style="font-size:13px;font-weight:500;margin-bottom:10px">Target job</div>
+      <div class="tab-row" style="margin-bottom:10px">
+        <button class="tab active" onclick="switchJobTab('describe',this)">Describe dream role</button>
+        <button class="tab" onclick="switchJobTab('upload',this)">Upload JD</button>
+      </div>
+      <div id="job-describe-tab">
+        <textarea id="job-description" placeholder="e.g. I want to be a Machine Learning Engineer at a product startup, working on recommendation systems and NLP pipelines..." style="width:100%;min-height:110px;font-size:12px;line-height:1.6;resize:vertical"></textarea>
+      </div>
+      <div id="job-upload-tab" class="hidden">
+        <div class="upload-zone" style="padding:1rem" onclick="document.getElementById('jd-file').click()">
+          <input type="file" id="jd-file" accept=".pdf,.txt,.docx" style="display:none" onchange="handleJDFile(this)">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="var(--color-text-tertiary)" stroke-width="1.5"><path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z"/><polyline points="14 2 14 8 20 8"/></svg>
+          <div id="jd-file-label" style="font-size:12px;color:var(--color-text-secondary);margin-top:4px">Upload job description (PDF/TXT)</div>
+        </div>
+        <textarea id="jd-extracted" placeholder="Extracted job description will appear here, or paste manually..." style="width:100%;min-height:70px;font-size:11px;line-height:1.6;resize:vertical;margin-top:8px"></textarea>
+      </div>
+    </div>
+  </div>
+
+  <button class="btn prim" id="analyze-btn" onclick="runFullAnalysis()" style="width:100%;padding:11px;margin-top:1rem;font-size:13px">
+    Analyze resume vs job — find gaps + search courses &amp; jobs ↗
+  </button>
+  <div id="analyze-status" style="margin-top:8px"></div>
+</div>
+
+<!-- GAPS PAGE -->
+<div class="page" id="page-gaps">
+  <div id="gaps-content"><div style="text-align:center;padding:2.5rem;color:var(--color-text-secondary);font-size:13px">Run the analyzer first to see your skill gap breakdown.</div></div>
+</div>
+
+<!-- COURSES PAGE -->
+<div class="page" id="page-courses">
+  <div id="courses-content"><div style="text-align:center;padding:2.5rem;color:var(--color-text-secondary);font-size:13px">Run the analyzer first — AI will search the web for real courses based on your gaps.</div></div>
+</div>
+
+<!-- JOBS PAGE -->
+<div class="page" id="page-jobs">
+  <div id="jobs-content"><div style="text-align:center;padding:2.5rem;color:var(--color-text-secondary);font-size:13px">Run the analyzer first — AI will search for jobs you can apply to right now.</div></div>
+</div>
+
+</div>
+</div>
+
+</body>
+</html>
